@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Semaines paires et impaires</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap">
+<style>
+:root{
+  --bg:#f6f8fb; --surface:#ffffff; --fg:#17202c; --muted:#6b7686; --line:#dde3ec;
+  --blue:#cfe2fb; --blue-strong:#2f6fca; --white:#ffffff; --chip:#eef3fa;
+  --font-display:"Space Grotesk",system-ui,sans-serif; --font-body:"Inter",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 16px 48px}
+header{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+h1{font-family:var(--font-display);font-size:1.75rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.legend{display:flex;gap:14px;color:var(--muted);font-size:.85rem;margin-right:8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:14px;border-radius:3px;border:1px solid var(--line);display:inline-block}
+button{font:inherit;font-size:.85rem;padding:7px 12px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+button:hover{border-color:var(--blue-strong)}
+button.primary{background:var(--blue-strong);border-color:var(--blue-strong);color:#fff}
+button:focus-visible,.day:focus-visible,.wn:focus-visible{outline:2px solid var(--blue-strong);outline-offset:1px}
+.month{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 12px 12px;margin-bottom:16px}
+.month h2{font-family:var(--font-display);font-size:1.1rem;margin:0 0 8px;text-transform:capitalize}
+.cal{display:grid;grid-template-columns:44px repeat(7,minmax(0,1fr));gap:0}
+.hd{font-weight:500;color:var(--muted);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;padding:4px 6px}
+.wn{color:var(--muted);font-size:.72rem;border-top:1px solid var(--line);padding:8px 4px;cursor:pointer;text-align:center;font-variant-numeric:tabular-nums}
+.wn.blue{color:var(--blue-strong);font-weight:600;background:var(--blue)}
+.day{border-top:1px solid var(--line);border-left:1px solid var(--line);min-height:74px;padding:6px;cursor:pointer;background:var(--white);display:flex;flex-direction:column;gap:3px;min-width:0}
+.day.blue{background:var(--blue)}
+.day.out{opacity:.35}
+.day:hover{box-shadow:inset 0 0 0 1px var(--blue-strong)}
+.num{font-variant-numeric:tabular-nums;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.mark{width:6px;height:6px;border-radius:50%;background:var(--blue-strong)}
+.slot{font-size:.72rem;background:var(--chip);border-radius:4px;padding:2px 4px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.day.blue .slot{background:rgba(255,255,255,.7)}
+.hint{color:var(--muted);font-size:.85rem;margin:0 0 16px}
+dialog{border:1px solid var(--line);border-radius:10px;padding:20px;width:min(420px,calc(100vw - 32px));background:var(--surface);color:var(--fg)}
+dialog::backdrop{background:rgba(15,25,40,.35)}
+dialog h3{font-family:var(--font-display);margin:0 0 14px;text-transform:capitalize}
+fieldset{border:0;padding:0;margin:0 0 16px}
+legend{font-weight:600;font-size:.85rem;margin-bottom:8px}
+.opts{display:flex;gap:8px;flex-wrap:wrap}
+.opts label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+.row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;gap:6px;align-items:center;margin-bottom:6px}
+input[type=time],input[type=text]{font:inherit;padding:6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);min-width:0}
+.x{padding:4px 8px}
+.foot{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.saved{color:var(--muted);font-size:.8rem}
+@media (max-width:640px){.day{min-height:56px;padding:3px}.slot{font-size:.62rem;padding:1px 2px}.cal{grid-template-columns:30px repeat(7,minmax(0,1fr))}}
+@media print{.tools,.hint{display:none}.month{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Semaines paires et impaires</h1>
+      <p class="sub">Du lundi 16 novembre 2026 au dimanche 4 juillet 2027 · numéros de semaine ISO</p>
+    </div>
+    <div class="tools">
+      <div class="legend"><span><i class="sw" style="background:var(--white)"></i>Impaire</span><span><i class="sw" style="background:var(--blue)"></i>Paire</span></div>
+      <button id="reset" type="button">Rétablir pair / impair</button>
+      <button id="save" type="button" class="primary">Enregistrer le fichier</button>
+    </div>
+  </header>
+  <p class="hint">Cliquez sur un jour pour changer sa couleur ou ajouter des heures. Cliquez sur le numéro de semaine (S47…) pour changer toute la semaine. Pour envoyer vos changements, cliquez sur « Enregistrer le fichier » et envoyez le fichier téléchargé.</p>
+  <div id="grid"></div>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog" id="dform">
+    <h3 id="dtitle">mercredi 30 juin 2027</h3>
+    <fieldset>
+      <legend>Couleur de ce jour</legend>
+      <div class="opts">
+        <label><input type="radio" name="col" value="auto" id="col-auto"> Comme la semaine</label>
+        <label><input type="radio" name="col" value="white" id="col-white"> Blanc</label>
+        <label><input type="radio" name="col" value="blue" id="col-blue"> Bleu</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>Heures</legend>
+      <div id="slots"><div class="row"><input type="time" class="f" value="" aria-label="Début"><input type="time" class="t" value="" aria-label="Fin"><input type="text" class="n" placeholder="Note (facultatif)" value=""><button type="button" class="x" aria-label="Supprimer">✕</button></div></div>
+      <button type="button" id="addslot">+ Ajouter une plage horaire</button>
+    </fieldset>
+    <div class="foot">
+      <button type="button" id="cancel">Annuler</button>
+      <button type="submit" class="primary" id="ok">Valider</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="application/json" id="data">{"updated":1794478327300,"weeks":{},"days":{"2026-12-18":{"color":"blue","slots":[{"from":"15:00","to":"","note":""}]},"2026-12-19":{"color":"blue"},"2026-12-20":{"color":"blue"},"2026-12-24":{"color":"blue","slots":[{"from":"","to":"","note":"Chez Hervé à 17h"}]},"2026-12-25":{"slots":[{"from":"","to":"","note":"Retour chez moi à 11H"}]},"2026-12-26":{"slots":[{"from":"","to":"","note":"Départ chez Hervé à 18h"}]},"2026-12-27":{"color":"white"},"2026-12-31":{"slots":[{"from":"","to":"","note":"Chez moi à17h"}]},"2027-01-01":{"slots":[{"from":"","to":"","note":"CHez Hervé à 11h"}]},"2027-01-07":{"color":"blue","slots":[{"from":"15:00","to":"","note":""}]},"2027-01-08":{"color":"blue"},"2027-01-09":{"color":"blue"},"2027-01-10":{"color":"blue"},"2027-02-19":{"color":"blue","slots":[{"from":"15:00","to":"","note":"Vacances"}]},"2027-02-20":{"color":"blue"},"2027-02-21":{"color":"blue"},"2027-02-27":{"slots":[{"from":"18:00","to":"","note":"Retour Hervé"}]},"2027-02-28":{"color":"white"},"2027-03-29":{"color":"blue","slots":[{"from":"14:00","to":"","note":"Départ Hervé - cassage du verre"}]},"2027-04-24":{"color":"white"},"2027-04-25":{"color":"white"},"2027-04-23":{"slots":[{"from":"15:00","to":"","note":"Vacances Hervé"}]},"2027-05-01":{"color":"blue","slots":[{"from":"","to":"","note":"Retour 18h"}]},"2027-05-02":{"color":"blue"},"2027-05-06":{"color":"white","slots":[{"from":"","to":"","note":"Ascension - récup 18h"}]},"2027-05-05":{"slots":[{"from":"18:00","to":"","note":"CHez Hervé pour Ascension"}]},"2027-06-28":{"slots":[{"from":"","to":"","note":"A définir"}]},"2027-06-29":{"slots":[{"from":"","to":"","note":"A définir"}]},"2027-06-30":{"slots":[{"from":"","to":"","note":"A définir"}]}}}</script>
+<script>
+const START=new Date(2026,10,16), RANGE_END=new Date(2027,5,30), END=new Date(2027,6,4);
+const LS="cal-semaines-v2", DAY=864e5;
+const pad=n=>String(n).padStart(2,"0");
+const key=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+function isoWeek(d){const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const n=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-n);const y=new Date(Date.UTC(t.getUTCFullYear(),0,1));return Math.ceil(((t-y)/DAY+1)/7)}
+
+let state;
+try{state=JSON.parse(document.getElementById("data").textContent)}catch(e){state={updated:0,weeks:{},days:{}}}
+try{const l=JSON.parse(localStorage.getItem(LS)||"null");if(l&&l.updated>state.updated)state=l}catch(e){}
+state.weeks=state.weeks||{};state.days=state.days||{};
+function persist(){state.updated=Date.now();try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+
+const weekBlue=mo=>{const k=key(mo);return k in state.weeks?state.weeks[k]:isoWeek(mo)%2===0};
+const mondayOf=d=>addDays(d,-((d.getDay()+6)%7));
+function dayBlue(d){const c=(state.days[key(d)]||{}).color;if(c==="blue")return true;if(c==="white")return false;return weekBlue(mondayOf(d))}
+
+const mondays=[];for(let d=new Date(START);d<=END;d=addDays(d,7))mondays.push(new Date(d));
+const months=[];for(let y=2026,m=10;y<2027||m<=5;){months.push([y,m]);if(++m>11){m=0;y++}}
+const fmtMonth=new Intl.DateTimeFormat("fr-BE",{month:"long",year:"numeric"});
+const fmtDay=new Intl.DateTimeFormat("fr-BE",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+const grid=document.getElementById("grid");
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render(){
+  grid.innerHTML="";
+  months.forEach(([y,m])=>{
+    const sec=document.createElement("section");sec.className="month";
+    let h=`<h2>${fmtMonth.format(new Date(y,m,1))}</h2><div class="cal"><div class="hd">Sem</div>`+["Lu","Ma","Me","Je","Ve","Sa","Di"].map(x=>`<div class="hd">${x}</div>`).join("");
+    mondays.filter(mo=>{const su=addDays(mo,6);return (mo.getMonth()===m&&mo.getFullYear()===y)||(su.getMonth()===m&&su.getFullYear()===y)}).forEach(mo=>{
+      h+=`<div class="wn${weekBlue(mo)?" blue":""}" tabindex="0" role="button" data-w="${key(mo)}" title="Changer toute la semaine">S${isoWeek(mo)}</div>`;
+      for(let i=0;i<7;i++){
+        const d=addDays(mo,i),k=key(d),info=state.days[k]||{};
+        const out=d.getMonth()!==m||d>RANGE_END;
+        const slots=(info.slots||[]).map(s=>`<div class="slot">${esc((s.from||"")+(s.to?"–"+s.to:""))}${s.note?" "+esc(s.note):""}</div>`).join("");
+        const mark=info.color?'<i class="mark" title="Couleur modifiée"></i>':"";
+        h+=`<div class="day${dayBlue(d)?" blue":""}${out?" out":""}" tabindex="0" role="button" data-d="${k}"><div class="num"><span>${d.getDate()}</span>${mark}</div>${slots}</div>`;
+      }
+    });
+    sec.innerHTML=h+"</div>";grid.appendChild(sec);
+  });
+}
+function act(el){
+  if(!el)return;
+  if(el.dataset.w){const mo=new Date(el.dataset.w+"T00:00");state.weeks[el.dataset.w]=!weekBlue(mo);persist();render();grid.querySelector(`[data-w="${el.dataset.w}"]`).focus()}
+  else if(el.dataset.d)openDay(el.dataset.d);
+}
+grid.addEventListener("click",e=>act(e.target.closest("[data-w],[data-d]")));
+grid.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();act(e.target.closest("[data-w],[data-d]"))}});
+
+// Dialog
+const dlg=document.getElementById("dlg"),slotsEl=document.getElementById("slots");let cur=null;
+function slotRow(s={}){const r=document.createElement("div");r.className="row";
+  r.innerHTML=`<input type="time" class="f" value="${esc(s.from||"")}" aria-label="Début"><input type="time" class="t" value="${esc(s.to||"")}" aria-label="Fin"><input type="text" class="n" placeholder="Note (facultatif)" value="${esc(s.note||"")}"><button type="button" class="x" aria-label="Supprimer">✕</button>`;
+  r.querySelector(".x").onclick=()=>r.remove();slotsEl.appendChild(r)}
+function openDay(k){cur=k;const d=new Date(k+"T00:00"),info=state.days[k]||{};
+  document.getElementById("dtitle").textContent=fmtDay.format(d);
+  document.getElementById("col-"+(info.color||"auto")).checked=true;
+  slotsEl.innerHTML="";(info.slots||[]).forEach(slotRow);if(!(info.slots||[]).length)slotRow();
+  dlg.showModal()}
+document.getElementById("addslot").onclick=()=>slotRow();
+document.getElementById("cancel").onclick=()=>dlg.close();
+document.getElementById("dform").addEventListener("submit",()=>{
+  const color=document.querySelector('input[name=col]:checked').value;
+  const slots=[...slotsEl.querySelectorAll(".row")].map(r=>({from:r.querySelector(".f").value,to:r.querySelector(".t").value,note:r.querySelector(".n").value.trim()})).filter(s=>s.from||s.to||s.note);
+  const info={};if(color!=="auto")info.color=color;if(slots.length)info.slots=slots;
+  if(Object.keys(info).length)state.days[cur]=info;else delete state.days[cur];
+  persist();render();
+});
+
+document.getElementById("reset").onclick=()=>{state.weeks={};Object.keys(state.days).forEach(k=>{delete state.days[k].color;if(!state.days[k].slots)delete state.days[k]});persist();render()};
+
+document.getElementById("save").onclick=()=>{
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelector("#grid").innerHTML="";
+  clone.querySelector("#data").textContent=JSON.stringify(state).replace(/</g,"\\u003c");
+  const dl=clone.querySelector("dialog");dl.removeAttribute("open");
+  const html="<!DOCTYPE html>\n"+clone.outerHTML;
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));
+  a.download="calendrier-semaines.html";document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+};
+render();
+</script>
+
+
+</body></html>
